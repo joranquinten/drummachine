@@ -12,12 +12,12 @@ export default class Drummachine {
     }
   ) {
     this.bpm = config.bpm || 60;
-    this.base = config.base || 4;
+    this.base = config.base || 8;
     this.loop = config.loop || null;
     this.numberOfTracks = config.numberOfTracks || 3;
     this.started = false;
     this.stopped = false;
-    this.trackMatrix = null;
+    this.trackMatrix = this._createTrackMatrix();
     this.interval = null;
     this.iterations = 0;
     this.currentBeat = null;
@@ -69,9 +69,8 @@ export default class Drummachine {
     }
   }
 
-  start() {
+  start(cb) {
     this.started = true;
-    if (!this.trackMatrix) this.trackMatrix = this._createTrackMatrix();
     if (this.interval) this.stop();
     this.currentBeat = 0;
     this.interval = setInterval(() => {
@@ -82,6 +81,7 @@ export default class Drummachine {
       }
       if (typeof this.loop === "function") this.loop();
     }, this._bpmToInterval());
+    if (typeof cb === "function") cb();
   }
 
   stop() {
@@ -91,7 +91,6 @@ export default class Drummachine {
 
   setBPM(bpm) {
     this.bpm = bpm;
-    this.start();
   }
 
   getBPM() {
