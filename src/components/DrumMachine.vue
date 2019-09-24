@@ -43,6 +43,8 @@
 <script>
 import Drummachine from "../common/drummachine";
 
+import effects from "../common/sounds/";
+
 export default {
   name: "DrumMachine",
   data() {
@@ -54,7 +56,8 @@ export default {
       interval: null,
       selectedBPM: 30,
       beatsBase: 8,
-      matrixKey: 0
+      matrixKey: 0,
+      trackSounds: null
     };
   },
   mounted() {
@@ -64,13 +67,11 @@ export default {
       loop: () => this.playBeat()
     });
     this.matrix = this.machine.getTrackMatrix();
+    this.trackSounds = Object.keys(effects);
   },
   computed: {
     currentBeatIndex() {
       return this.currentBeat ? this.currentBeat[0].index : -1;
-    },
-    currentMatrix() {
-      return this.machine.getTrackMatrix();
     }
   },
   methods: {
@@ -94,6 +95,13 @@ export default {
     },
     playBeat() {
       this.currentBeat = this.machine.getCurrentBeat();
+
+      this.currentBeat.map(beat => {
+        if (beat.active) {
+          const sound = this.trackSounds[beat.track];
+          effects[sound].play();
+        }
+      });
     },
     changeBPM() {
       if (this.isRunning) {

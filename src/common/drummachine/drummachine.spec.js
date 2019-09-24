@@ -61,12 +61,14 @@ describe("drummachine class", () => {
     expect(mockLoop).toBeCalledTimes(1);
 
     testDrums.setBPM(1);
+    testDrums.start();
     jest.advanceTimersByTime(1000);
     expect(mockLoop).toBeCalledTimes(1);
     jest.advanceTimersByTime(59000);
     expect(mockLoop).toBeCalledTimes(2);
 
     testDrums.setBPM(180);
+    testDrums.start();
     jest.advanceTimersByTime(1000);
     expect(mockLoop).toBeCalledTimes(4);
   });
@@ -74,7 +76,7 @@ describe("drummachine class", () => {
   it("should return a trackmatrix", () => {
     const testDrums = new Drummachine();
 
-    expect(testDrums.getTrackMatrix()).toEqual(null);
+    expect(testDrums.getTrackMatrix().length).toEqual(3);
     testDrums.start();
     expect(testDrums.getTrackMatrix().length).toEqual(3);
     expect(testDrums.getTrackMatrix()[0].length).toEqual(4);
@@ -123,8 +125,6 @@ describe("drummachine class", () => {
   it("should return all of the beats", () => {
     const mockLoop = jest.fn();
     const testDrums = new Drummachine({ bpm: 60, base: 4, loop: mockLoop });
-
-    expect(testDrums.getCurrentBeat()).toBeUndefined();
 
     testDrums.start();
 
