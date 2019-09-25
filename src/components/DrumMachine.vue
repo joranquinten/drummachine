@@ -48,16 +48,21 @@
         :step="10"
         :tipFormatter="v => `${v} bpm`"
       />
+      <Presets :current="this.matrix" :load="loadBeat" />
     </div>
   </div>
 </template>
 <script>
 import Drummachine from "../common/drummachine";
-
 import effects from "../common/sounds/";
+
+import Presets from "./Presets";
 
 export default {
   name: "DrumMachine",
+  components: {
+    Presets
+  },
   data() {
     return {
       matrix: null,
@@ -104,6 +109,7 @@ export default {
           beat.active = false;
         });
       });
+      this.forceRerender();
       this.stop();
     },
     toggleBeat(beat = {}) {
@@ -123,6 +129,21 @@ export default {
           effects[sound].play();
         }
       });
+    },
+    loadBeat(preset) {
+      const wasRunning = this.isRunning;
+      this.clearAll();
+      preset.matrix.map(beat => {
+        if (this.matrix[beat.track] && this.matrix[beat.track][beat.index]) {
+          const newBeat = {
+            ...this.matrix[beat.track][beat.index],
+            active: true
+          };
+          this.machine.addToTrackMatrix(newBeat.track, newBeat.index, newBeat);
+          this.forceRerender();
+        }
+      });
+      if (wasRunning) this.start();
     },
     changeBPM() {
       if (this.isRunning) {
