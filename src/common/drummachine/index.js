@@ -43,7 +43,7 @@ export default class Drummachine {
   }
 
   _bpmToInterval() {
-    return 60000 / this.getBPM() / this.base;
+    return 60000 / this.getBPM() / (this.base / 4);
   }
 
   _createTrackMatrix() {

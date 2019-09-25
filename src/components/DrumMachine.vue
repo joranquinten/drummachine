@@ -1,6 +1,30 @@
 <template>
   <div class="drum-machine">
-    <fieldset v-if="matrix" class="matrix" :key="matrixKey">
+    <div class="controls">
+      <button @click="start" v-if="!isRunning">Start</button>
+      <button @click="stop" v-if="isRunning">Stop</button>
+      <button @click="clearAll">Clear</button>
+
+      <select v-model="selectedBPM" @change="changeBPM">
+        <option
+          :value="bpm"
+          :key="bpm"
+          v-for="bpm in [180, 160, 150, 140, 130, 120, 100, 80, 60, 30]"
+          >{{ bpm }}</option
+        >
+      </select>
+
+      <select
+        v-if="trackSounds"
+        v-model="numberOfTracks"
+        @change="changeTrackNumber"
+      >
+        <option :value="n" :key="n" v-for="n in trackSounds.length">{{
+          n
+        }}</option>
+      </select>
+    </div>
+    <fieldset v-if="matrix && trackSounds" class="matrix" :key="matrixKey">
       <div
         class="track"
         :key="trackIndex"
@@ -13,31 +37,19 @@
           v-for="(beat, beatIndex) in track"
           @click="toggleBeat(beat)"
         >
-          {{ beat }}
+          {{ trackSounds[beat.track] }}
         </button>
       </div>
-      <div class="track">
+      <div v-if="false" class="track">
         <span
           v-for="i in beatsBase"
           :key="i"
           class="beat beat-stepper"
           :class="{ active: i - 1 === currentBeatIndex }"
-          >{{ i }}</span
+          >&nbsp;</span
         >
       </div>
     </fieldset>
-    <div class="current-beat">{{ currentBeat }}</div>
-    <button @click="start" v-if="!isRunning">Start</button>
-    <button @click="stop" v-if="isRunning">Stop</button>
-
-    <select v-model="selectedBPM" @change="changeBPM">
-      <option
-        :value="bpm"
-        :key="bpm"
-        v-for="bpm in [180, 140, 120, 80, 60, 40, 30, 20]"
-        >{{ bpm }}</option
-      >
-    </select>
   </div>
 </template>
 <script>
@@ -54,7 +66,8 @@ export default {
       machine: null,
       isRunning: false,
       interval: null,
-      selectedBPM: 30,
+      selectedBPM: 120,
+      numberOfTracks: 9,
       beatsBase: 8,
       matrixKey: 0,
       trackSounds: null
@@ -64,6 +77,7 @@ export default {
     this.machine = new Drummachine({
       bpm: this.selectedBPM,
       base: this.beatsBase,
+      numberOfTracks: this.numberOfTracks,
       loop: () => this.playBeat()
     });
     this.matrix = this.machine.getTrackMatrix();
@@ -84,13 +98,19 @@ export default {
       this.isRunning = false;
       this.machine.stop();
     },
+    clearAll() {
+      this.matrix.map(track => {
+        track.map(beat => {
+          beat.active = false;
+        });
+      });
+    },
     toggleBeat(beat = {}) {
       const newBeat = beat.active
         ? { ...beat, active: false }
         : { ...beat, active: true };
 
       this.machine.addToTrackMatrix(beat.track, beat.index, newBeat);
-      this.matrix = this.machine.getTrackMatrix();
       this.forceRerender();
     },
     playBeat() {
@@ -112,6 +132,10 @@ export default {
         this.machine.setBPM(this.selectedBPM);
       }
     },
+    changeTrackNumber() {
+      this.machine.setTracks(this.numberOfTracks);
+      this.matrix = this.machine.getTrackMatrix();
+    },
     forceRerender() {
       this.matrixKey += 1;
     }
@@ -123,34 +147,57 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.matrix {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
+.drum-machine {
+  transform: perspective(800px) rotateX(15deg);
+  .matrix {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    max-width: 80vw;
+    margin: 0 auto;
+    box-shadow: none;
+    border: none;
+    outline: none;
 
-  .track {
-    display: inline-flex;
-    flex: 0 0 25%;
-    border: 1px solid #333;
-    padding: 1em 0;
-    justify-content: space-between;
+    .track {
+      display: inline-flex;
+      flex: 0 0 25%;
+      padding: 4px 0;
+      justify-content: space-between;
 
-    .beat {
-      flex: 1 0 0;
-      margin: 0 4px;
-      display: block;
-      border: 1px solid #111;
-      &.active {
-        border-color: red;
+      button {
+        cursor: pointer;
+        border-radius: 2px;
+        padding: 1.4em 0;
       }
-      &.on {
-        border-color: blue;
-      }
-    }
 
-    .beat-stepper {
-      &.active {
-        background-color: red;
+      .beat {
+        flex: 1 0 0;
+        margin: 0 4px;
+        display: block;
+        border: 1px solid #8be9fd;
+        box-shadow: 0px 5px 3px 0px rgba(139, 233, 253, 0.75);
+        &.active {
+          transform: translateY(2px);
+          background: #50fa7b;
+          box-shadow: 0px 3px 3px 0px rgba(105, 255, 148, 0.75);
+          outline: 0px 3px 3px 0px rgba(105, 255, 148, 0.75);
+        }
+        &.on {
+          transform: translateY(2px);
+          background: #ff79c6;
+          box-shadow: 0px 3px 3px 0px rgba(255, 146, 223, 0.75);
+          outline: 0px 3px 3px 0px rgba(255, 146, 223, 0.75);
+        }
+      }
+
+      .beat-stepper {
+        &.active {
+          transform: translateY(2px);
+          background: #ff79c6;
+          box-shadow: 0px 3px 3px 0px rgba(255, 146, 223, 0.75);
+          outline: 0px 3px 3px 0px rgba(255, 146, 223, 0.75);
+        }
       }
     }
   }
