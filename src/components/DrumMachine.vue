@@ -1,29 +1,5 @@
 <template>
   <div class="drum-machine">
-    <div class="controls">
-      <button @click="start" v-if="!isRunning">Start</button>
-      <button @click="stop" v-if="isRunning">Stop</button>
-      <button @click="clearAll">Clear</button>
-
-      <select v-model="selectedBPM" @change="changeBPM">
-        <option
-          :value="bpm"
-          :key="bpm"
-          v-for="bpm in [180, 160, 150, 140, 130, 120, 100, 80, 60, 30]"
-          >{{ bpm }}</option
-        >
-      </select>
-
-      <select
-        v-if="trackSounds"
-        v-model="numberOfTracks"
-        @change="changeTrackNumber"
-      >
-        <option :value="n" :key="n" v-for="n in trackSounds.length">{{
-          n
-        }}</option>
-      </select>
-    </div>
     <fieldset v-if="matrix && trackSounds" class="matrix" :key="matrixKey">
       <div
         class="track"
@@ -50,6 +26,29 @@
         >
       </div>
     </fieldset>
+
+    <div class="controls">
+      <a-button-group>
+        <a-button @click="start" :disabled="isRunning">
+          Play
+        </a-button>
+        <a-button @click="stop" :disabled="!isRunning">
+          Pause
+        </a-button>
+        <a-button @click="clearAll">
+          Clear
+        </a-button>
+      </a-button-group>
+
+      <a-slider
+        v-model="selectedBPM"
+        @change="changeBPM"
+        :min="30"
+        :max="180"
+        :step="10"
+        :tipFormatter="v => `${v} bpm`"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -96,6 +95,7 @@ export default {
     },
     stop() {
       this.isRunning = false;
+      this.currentBeat = null;
       this.machine.stop();
     },
     clearAll() {
@@ -104,6 +104,7 @@ export default {
           beat.active = false;
         });
       });
+      this.stop();
     },
     toggleBeat(beat = {}) {
       const newBeat = beat.active
@@ -131,10 +132,6 @@ export default {
       } else {
         this.machine.setBPM(this.selectedBPM);
       }
-    },
-    changeTrackNumber() {
-      this.machine.setTracks(this.numberOfTracks);
-      this.matrix = this.machine.getTrackMatrix();
     },
     forceRerender() {
       this.matrixKey += 1;
@@ -200,6 +197,13 @@ export default {
         }
       }
     }
+  }
+
+  .controls {
+    z-index: 1;
+    max-width: 400px;
+    margin: 2em auto 0;
+    transform: perspective(800px) rotateX(-15deg);
   }
 }
 </style>
