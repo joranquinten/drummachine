@@ -53,8 +53,6 @@ export default {
         );
       }, []);
 
-      console.log(JSON.stringify(preset));
-
       this.presets.push({
         name: `New beat #${this.presets.length + 1}`,
         matrix: preset
